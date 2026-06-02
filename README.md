@@ -5,6 +5,10 @@ A compact, themeable [Claude Code](https://claude.com/claude-code) status line, 
 context-window meter, git info, and a clock. Built by a designer who cared too much about a
 single line in a terminal. 🏎️🔥
 
+![claude-code-statusline — danny theme](docs/hero.png)
+
+<sub>(plain-text fallback if the image hasn't loaded:)</sub>
+
 ```
 🔥 🤖  Opus 4.8 (1M ctx)[high]  🧠 70%|3h30m  /        / my-app  main  09:00:19  /
 ```
@@ -17,6 +21,17 @@ single line in a terminal. 🏎️🔥
   branch is color-coded clean/dirty
 - **Signature "race car" ends** — a flame trailing the left, a slant `/` nosing the right, so the
   line reads like it's moving left→right
+
+## Responsive layout
+
+The bar is width-aware: as the terminal narrows it **sheds the least-important segments instead of
+clipping**, then trims the model label — so it always stays on one line. Peel order:
+
+`clock → branch → repo → reset countdown → [effort] → (model qualifier) → context chip`
+
+![responsive layout across terminal widths](docs/responsive.png)
+
+Reproduce it yourself: `bash demos/responsive.sh` (widen to ~115 cols, then screenshot).
 
 ## Requirements
 
