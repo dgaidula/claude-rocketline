@@ -184,17 +184,29 @@ if [ -n "$cwd" ] && command -v git >/dev/null 2>&1; then
 fi
 r+=("${TIME_BG}|${TIME_FG}|${CLOCK} $(date '+%H:%M:%S')")
 
-right=""
-[ "${#r[@]}" -gt 0 ] && right=$(render_rchain "${r[@]}")
-
-# ── right-align: pad left+right to terminal width ─────────────────────────────
+# ── terminal width ────────────────────────────────────────────────────────────
 cols=$(jqr '.terminal.width'); [ -z "$cols" ] && cols=$(jqr '.cols')
 [ -z "$cols" ] && cols="$COLUMNS"
 [ -z "$cols" ] && cols=$(tput cols 2>/dev/null)
 case "$cols" in ''|*[!0-9]*) cols=100 ;; esac
+avail=$(( cols - 1 ))            # reserve the last column (avoid edge-wrap)
+lw=$(visw "$left")
 
+# ── fit the right cluster: if it won't fit, drop segments (clock → branch → repo)
+# until it does, so the right side is never clipped on a narrow terminal. ───────
+right=""
+while [ "${#r[@]}" -gt 0 ]; do
+  cand=$(render_rchain "${r[@]}")
+  if [ $(( lw + 1 + $(visw "$cand") )) -le "$avail" ]; then
+    right="$cand"; break
+  fi
+  unset "r[$(( ${#r[@]} - 1 ))]"  # drop the rightmost segment
+  r=("${r[@]}")                   # reindex
+done
+
+# ── emit (right-aligned, padded to avail) ─────────────────────────────────────
 if [ -n "$right" ]; then
-  pad=$(( cols - $(visw "$left") - $(visw "$right") ))
+  pad=$(( avail - lw - $(visw "$right") ))
   [ "$pad" -lt 1 ] && pad=1
   printf '%s%*s%s\n' "$left" "$pad" '' "$right"
 else
