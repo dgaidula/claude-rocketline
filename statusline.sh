@@ -100,6 +100,15 @@ esac
 OUTER_L=${STATUSLINE_LCAP:-$OUTER_L}
 OUTER_R=${STATUSLINE_RCAP:-$OUTER_R}
 
+# Optional gap (default-bg spaces) right after the left cap. Helps two-font setups
+# (e.g. Ghostty: TX-02 text + a Nerd Font for icons) where the cap glyph renders flush
+# against the first segment. STATUSLINE_CAP_GAP=<n spaces>, default 0 (no change).
+cap_gap=""
+case "${STATUSLINE_CAP_GAP:-0}" in
+  0|''|*[!0-9]*) ;;
+  *) cap_gap="${e}[49m$(printf "%${STATUSLINE_CAP_GAP}s" '')" ;;
+esac
+
 # ── renderers ─────────────────────────────────────────────────────────────────
 # Left chain: "bg|fg|text" ... — angled OUTER_L cap, slant trailing cap into gap.
 render_lchain() {
@@ -116,7 +125,7 @@ render_lchain() {
     prev_bg="$bg"
   done
   if [ -n "$out" ]; then
-    out="${e}[49m${e}[38;5;${first_bg}m${OUTER_L}${out}${RESET}${e}[38;5;${prev_bg}m${GAP_L}${RESET}"
+    out="${e}[49m${e}[38;5;${first_bg}m${OUTER_L}${cap_gap}${out}${RESET}${e}[38;5;${prev_bg}m${GAP_L}${RESET}"
   fi
   printf '%s' "$out"
 }
