@@ -8,6 +8,7 @@
 #   STATUSLINE_THEME = danny | dark-dan            (default danny)
 #   STATUSLINE_CAPS  = flame | slant | rounded | pointed   (default flame)
 #   STATUSLINE_OS_ICON = <glyph>                   (default: auto by OS)
+#   STATUSLINE_FLAME = F2920D | <256-num>  (flame accent; auto-truecolor via COLORTERM)
 #   STATUSLINE_CTX_ICON, STATUSLINE_PIPE, STATUSLINE_LCAP, STATUSLINE_RCAP  (fine overrides)
 # Requires a Nerd Font (e.g. MesloLGS NF). Efficient: stdin read once; jq once per field.
 
@@ -73,12 +74,28 @@ esac
 PIPE_COLOR=${STATUSLINE_PIPE:-$PIPE_COLOR}
 PIPE="${e}[38;5;${PIPE_COLOR}m"
 
+# ── flame accent color ────────────────────────────────────────────────────────
+# Auto: true 24-bit #F2920D on truecolor terminals (Ghostty/iTerm2 set COLORTERM),
+# else the 256-color fallback. Override: STATUSLINE_FLAME=<hex F2920D | 256 number>.
+flame_sgr() {  # arg: hex (6 digits, optional #) → 24-bit; else 256-color number
+  local v="${1#\#}"
+  case "$v" in
+    [0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])
+      printf '%s[38;2;%d;%d;%dm' "$e" "$((16#${v:0:2}))" "$((16#${v:2:2}))" "$((16#${v:4:2}))" ;;
+    *)
+      printf '%s[38;5;%sm' "$e" "$v" ;;
+  esac
+}
+if [ -n "$STATUSLINE_FLAME" ]; then flame_fg=$(flame_sgr "$STATUSLINE_FLAME")
+elif [ "$COLORTERM" = truecolor ] || [ "$COLORTERM" = 24bit ]; then flame_fg=$(flame_sgr F2920D)
+else flame_fg=$(flame_sgr "$FLAME_COLOR"); fi
+
 # ── end caps (outer ends + the two caps facing the center gap) ────────────────
 case "${STATUSLINE_CAPS:-flame}" in
-  slant)    OUTER_L=$SLN_BW;                              OUTER_R=$SLN_FW; GAP_L=$SLN_FW; GAP_R=$SLN_BW ;;
-  rounded)  OUTER_L=$RND_LT;                              OUTER_R=$RND_RT; GAP_L=$RND_RT; GAP_R=$RND_LT ;;
-  pointed)  OUTER_L=$PL_LT;                               OUTER_R=$PL_RT;  GAP_L=$PL_RT;  GAP_R=$PL_LT ;;
-  *)        OUTER_L="${e}[38;5;${FLAME_COLOR}m${FLAME_L}"; OUTER_R=$SLN_FW; GAP_L=$SLN_FW; GAP_R=$SLN_BW ;;  # flame
+  slant)    OUTER_L=$SLN_BW;                  OUTER_R=$SLN_FW; GAP_L=$SLN_FW; GAP_R=$SLN_BW ;;
+  rounded)  OUTER_L=$RND_LT;                  OUTER_R=$RND_RT; GAP_L=$RND_RT; GAP_R=$RND_LT ;;
+  pointed)  OUTER_L=$PL_LT;                   OUTER_R=$PL_RT;  GAP_L=$PL_RT;  GAP_R=$PL_LT ;;
+  *)        OUTER_L="${flame_fg}${FLAME_L}";  OUTER_R=$SLN_FW; GAP_L=$SLN_FW; GAP_R=$SLN_BW ;;  # flame
 esac
 OUTER_L=${STATUSLINE_LCAP:-$OUTER_L}
 OUTER_R=${STATUSLINE_RCAP:-$OUTER_R}

@@ -75,6 +75,7 @@ Set via environment variables in the `command` (they compose):
 | `STATUSLINE_OS_ICON` | any glyph | auto | Override the OS badge icon |
 | `STATUSLINE_CTX_ICON` | any glyph/emoji | `🧠` | Context-meter icon |
 | `STATUSLINE_PIPE` | 256-color code | `250`/`240` | The `|` separator color |
+| `STATUSLINE_FLAME` | hex `F2920D` / 256-num | auto | Flame accent — auto true-color on truecolor terminals (`COLORTERM`), else 256-color `208` |
 | `STATUSLINE_BLUE` | 256-color code | theme | Model + repo segment color |
 | `STATUSLINE_NEUTRAL` / `_FG` | 256-color code | theme | Grey badge/clock bg / text |
 | `STATUSLINE_BADGE_BG/_FG`, `STATUSLINE_TIME_BG/_FG` | 256-color | theme | Per-segment fine control |
