@@ -130,15 +130,14 @@ visw() {
   printf '%s' $(( chars + wide ))
 }
 
-# ── LEFT: <os> 🤖 · model · context ──────────────────────────────────────────
+# ── LEFT pieces: <os> 🤖 · model · context (built at variable detail for narrow widths)
 model=$(jqr '.model.display_name')
 effort=$(jqr '.effort.level')
-model_txt="${model//context/ctx}"
-[ -n "$effort" ] && model_txt="${model_txt}[${effort}]"
+model_full="${model//context/ctx}"; [ -n "$effort" ] && model_full="${model_full}[${effort}]"
+model_noeff="${model//context/ctx}"     # drop [effort]
+model_short="${model%% (*}"             # drop the "(1M ctx)" qualifier → "Opus 4.8"
 
-l=("${BADGE_BG}|${BADGE_FG}|${OS_ICON} 🤖" "${MODEL_BG}|${MODEL_FG}|${model_txt}")
-
-# Compact 5h-limit reset countdown appended to context, like "🧠 68%|2h13m".
+# Compact 5h-limit reset countdown, like "🧠 68%|2h13m".
 reset_str=""
 five_resets=$(jqr '.rate_limits.five_hour.resets_at')
 if [ -n "$five_resets" ]; then
@@ -150,17 +149,35 @@ if [ -n "$five_resets" ]; then
   fi
 fi
 
+has_ctx=""; cbg=""; remaining=""
 used_pct=$(jqr '.context_window.used_percentage')
 if [ -n "$used_pct" ]; then
-  used_int=$(printf '%.0f' "$used_pct")
-  remaining=$((100 - used_int))
+  has_ctx=1; used_int=$(printf '%.0f' "$used_pct"); remaining=$((100 - used_int))
   if [ "$used_int" -ge 85 ]; then cbg=$CTX_RED
   elif [ "$used_int" -ge 60 ]; then cbg=$CTX_YELLOW
   else cbg=$CTX_GREEN; fi
-  l+=("${cbg}|${CTX_FG}|${CTX_ICON} ${remaining}%${reset_str}")
 fi
 
-left=$(render_lchain "${l[@]}")
+# Render the left chain at a detail level (0=full … 4=minimal). As width tightens
+# we trim, in order: reset countdown → [effort] → "(1M ctx)" qualifier → context chip.
+build_left() {
+  local lvl=$1 mtxt ctxt; local ll=()
+  case "$lvl" in
+    0|1) mtxt="$model_full" ;;
+    2)   mtxt="$model_noeff" ;;
+    *)   mtxt="$model_short" ;;
+  esac
+  ll=("${BADGE_BG}|${BADGE_FG}|${OS_ICON} 🤖" "${MODEL_BG}|${MODEL_FG}|${mtxt}")
+  if [ -n "$has_ctx" ]; then
+    case "$lvl" in
+      0)     ctxt="${CTX_ICON} ${remaining}%${reset_str}" ;;  # full
+      1|2|3) ctxt="${CTX_ICON} ${remaining}%" ;;              # drop reset countdown
+      *)     ctxt="" ;;                                       # drop context chip
+    esac
+    [ -n "$ctxt" ] && ll+=("${cbg}|${CTX_FG}|${ctxt}")
+  fi
+  render_lchain "${ll[@]}"
+}
 
 # ── RIGHT: repo (no root path) · branch · clock ──────────────────────────────
 cwd=$(jqr '.cwd')
@@ -190,10 +207,15 @@ cols=$(jqr '.terminal.width'); [ -z "$cols" ] && cols=$(jqr '.cols')
 [ -z "$cols" ] && cols=$(tput cols 2>/dev/null)
 case "$cols" in ''|*[!0-9]*) cols=100 ;; esac
 avail=$(( cols - 1 ))            # reserve the last column (avoid edge-wrap)
-lw=$(visw "$left")
 
-# ── fit the right cluster: if it won't fit, drop segments (clock → branch → repo)
-# until it does, so the right side is never clipped on a narrow terminal. ───────
+# ── fit LEFT: keep the least-trimmed left that fits (degrade only when forced) ──
+left=""; lw=0
+for lvl in 0 1 2 3 4; do
+  left=$(build_left "$lvl"); lw=$(visw "$left")
+  [ "$lw" -le "$avail" ] && break
+done
+
+# ── fit RIGHT: drop segments (clock → branch → repo) until it fits beside left ──
 right=""
 while [ "${#r[@]}" -gt 0 ]; do
   cand=$(render_rchain "${r[@]}")
