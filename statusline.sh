@@ -109,6 +109,9 @@ case "${STATUSLINE_CAP_GAP:-0}" in
   *) cap_gap="${e}[49m$(printf "%${STATUSLINE_CAP_GAP}s" '')" ;;
 esac
 
+# Bold segment text (uses the font's bold face). STATUSLINE_BOLD=0 to disable.
+case "${STATUSLINE_BOLD:-1}" in 0|false|no) BOLD="" ;; *) BOLD="${e}[1m" ;; esac
+
 # ── renderers ─────────────────────────────────────────────────────────────────
 # Left chain: "bg|fg|text" ... — angled OUTER_L cap, slant trailing cap into gap.
 render_lchain() {
@@ -121,7 +124,7 @@ render_lchain() {
     else
       out="${out}${e}[48;5;${bg}m${e}[38;5;${prev_bg}m${SEP}"
     fi
-    out="${out}${e}[48;5;${bg}m${e}[38;5;${fg}m ${txt} "
+    out="${out}${e}[48;5;${bg}m${e}[38;5;${fg}m${BOLD} ${txt} "
     prev_bg="$bg"
   done
   if [ -n "$out" ]; then
@@ -140,7 +143,7 @@ render_rchain() {
     else
       out="${out}${e}[48;5;${prev_bg}m${e}[38;5;${bg}m${RSEP}"
     fi
-    out="${out}${e}[48;5;${bg}m${e}[38;5;${fg}m ${txt} "
+    out="${out}${e}[48;5;${bg}m${e}[38;5;${fg}m${BOLD} ${txt} "
     prev_bg="$bg"
   done
   [ -n "$out" ] && out="${out}${e}[49m${e}[38;5;${prev_bg}m${OUTER_R}${RESET}"
