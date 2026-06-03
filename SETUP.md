@@ -67,10 +67,18 @@ Dark theme + rounded caps instead:
 
 ---
 
-## 3. Install the matching p10k prompt icons (optional)
+## 3. Install the matching p10k prompt dir segment (optional)
 
-The drop-in `p10k/p10k-dir-icons.zsh` sets the location classes/icons. Source it **after**
-`~/.p10k.zsh` so it overrides the generated config and **survives `p10k configure` re-runs**:
+The drop-in `p10k/p10k-dir-icons.zsh` replaces p10k's built-in `dir` segment with `cappeddir`,
+which shows the last N path segments, **caps the parent to a max length**, and carries the same
+house/sync/folder/lock icons:
+
+```
+FVD-20-1111 Chef Ann Updates/chefann-craft-cms-ddev   →    FVD-20-1111 Chef…/chefann-craft-cms-ddev
+```
+
+Source it **after** `~/.p10k.zsh` so it overrides the generated config and **survives
+`p10k configure` re-runs**:
 
 ```sh
 mkdir -p ~/.config/p10k
@@ -103,13 +111,17 @@ cache); it corrects on the next command. To force-clear it: `rm -f ~/.cache/p10k
 ## 5. Per-host tweaks
 
 - **No `~/Resilio Sync` on a host** (e.g. the Linode)? The sync rule is a harmless no-op
-  there and you simply get folders. To repurpose it for a different tree, edit the first
-  pattern in `p10k-dir-icons.zsh` (and the status line's `case "$cwd"` block) — both use the
-  same `~/Resilio Sync` convention.
-- **Whole home tree as a house** (not just `$HOME` itself): change the `'~'` pattern to
-  `'~(|/*)'` in `p10k-dir-icons.zsh`.
-- **Path depth:** `POWERLEVEL9K_SHORTEN_DIR_LENGTH` in the drop-in (2 = parent/dir, 3 adds
-  the grandparent).
+  there and you simply get folders. To repurpose it for a different tree, set
+  `POWERLEVEL9K_DIR_SYNC_ROOT` in `p10k-dir-icons.zsh` (and the status line's `case "$cwd"`
+  block uses the same `~/Resilio Sync` convention).
+- **Parent cap length:** `POWERLEVEL9K_DIR_PARENT_MAX_LEN` in the drop-in (default 16 →
+  `FVD-20-1111 Chef…`). Set high (e.g. 99) to effectively disable capping.
+- **Path depth:** `POWERLEVEL9K_SHORTEN_DIR_LENGTH` in the drop-in (2 = parent/repo, 3 adds
+  the grandparent). Only the first shown segment is capped.
+- **Sync tree:** `POWERLEVEL9K_DIR_SYNC_ROOT` (default `~/Resilio Sync`) picks which tree gets
+  the sync icon; harmless no-op on hosts without it.
+- **Icons / colors:** `_P9K_DIR_ICON_{HOME,SYNC,FOLDER,LOCK}` override glyphs; the segment
+  reuses p10k's `POWERLEVEL9K_DIR_{,ANCHOR_,SHORTENED_}FOREGROUND` / `BACKGROUND` for colors.
 
 > The status line's location logic lives in the `case "$cwd"` block near the RIGHT section of
 > `statusline.sh`; the p10k logic lives in `p10k-dir-icons.zsh`. Keep the two `~/Resilio Sync`
