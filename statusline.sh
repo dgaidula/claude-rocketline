@@ -155,7 +155,7 @@ visw() {
     my $w = 0;
     for (split //, $s) { my $o = ord;
       next if $o == 0xFE0F;                                  # variation selector
-      if    ($o == 0x1F9E0)                { $w += 3; }       # brain
+      if    ($o >= 0x1F900 && $o <= 0x1F9FF) { $w += 3; }     # supplemental emoji (robot 🤖, brain 🧠) = 3 in Ghostty
       elsif ($o >= 0xE0C0 && $o <= 0xE0C3) { $w += 2; }       # flame separators
       elsif ($o >= 0x1F000)                { $w += 2; }       # emoji
       elsif ($o >= 0x2600 && $o <= 0x27BF) { $w += 2; }       # misc emoji
