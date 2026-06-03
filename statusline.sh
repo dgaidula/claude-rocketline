@@ -147,13 +147,16 @@ render_rchain() {
   printf '%s' "$out"
 }
 
-# Visible width: strip ANSI, count chars, +1 per double-wide emoji.
+# Visible width. Powerline/Nerd PUA glyphs and emoji render as 2 cells in many
+# terminals (e.g. Ghostty), so count those as width 2; ANSI is stripped first.
 visw() {
-  local clean chars wide
-  clean=$(printf '%s' "$1" | sed "s/${e}\[[0-9;]*m//g")
-  chars=$(printf '%s' "$clean" | wc -m | tr -d ' ')
-  wide=$(printf '%s' "$clean" | grep -o $'🤖\|🧠\|⏱\|🌿\|✅\|🔄\|📝\|🔀' | wc -l | tr -d ' ')
-  printf '%s' $(( chars + wide ))
+  printf '%s' "$1" | perl -CS -e '
+    local $/; my $s = <STDIN>; $s =~ s/\x1b\[[0-9;]*m//g;
+    my $w = 0;
+    for (split //, $s) { my $o = ord; next if $o == 0xFE0F;
+      $w += ( ($o>=0xE000 && $o<=0xF8FF) || ($o>=0xF0000 && $o<=0xFFFFD)
+              || $o>=0x1F000 || ($o>=0x2300 && $o<=0x27BF) ) ? 2 : 1; }
+    print $w;'
 }
 
 # ── LEFT pieces: <os> 🤖 · model · context (built at variable detail for narrow widths)
