@@ -121,8 +121,8 @@ cache); it corrects on the next command. To force-clear it: `rm -f ~/.cache/p10k
 
 [cmux](https://cmux.com) is a macOS terminal built on libghostty (reads your existing
 `~/.config/ghostty/config`) with a per-workspace sidebar — it lights up a tab / rings a pane
-when an agent there is waiting. These Claude Code hooks drive that indicator. **macOS 14+,
-Apple Silicon or Intel.** Skip this section on the Minis if you stay on Ghostty, and on Linux.
+when an agent there is waiting. **macOS 14+, Apple Silicon or Intel.** Skip on the Minis if you
+stay on Ghostty, and on Linux.
 
 ### Install cmux
 
@@ -135,47 +135,28 @@ brew install --cask cmux
 (Or download the DMG from the [latest release](https://github.com/manaflow-ai/cmux/releases/latest)
 and drag to Applications — that path auto-updates via Sparkle.)
 
-### Put the `cmux` CLI on PATH (required for the hooks)
-
-The hooks call `cmux notify`, so the CLI must be resolvable — otherwise they silently no-op:
+Optional: put the CLI on PATH for `cmux` workspace commands from a pane:
 
 ```sh
 sudo ln -sf "/Applications/cmux.app/Contents/Resources/bin/cmux" /usr/local/bin/cmux
-cmux notify --title "test" --body "hello"   # should pop a notification
 ```
 
-### Wire the hooks (`~/.claude/settings.json`)
+### Claude Code: nothing to wire — it's automatic
 
-Merge this `hooks` block into your existing settings (don't clobber other keys). Both hooks
-are **guarded** (`command -v cmux || exit 0`) so they're a clean no-op on any machine without
-cmux, and **async** so they never add latency to a turn:
+**Do NOT add `cmux notify` hooks to `~/.claude/settings.json`.** cmux special-cases Claude
+Code: per `cmux hooks --help`, *"Claude Code hooks are injected automatically by the cmux Claude
+wrapper."* Just **launch `claude` inside a cmux pane** and the waiting/done indicators light up
+on their own — no install command, no settings edit. (Other agents like codex/opencode/gemini
+*do* need `cmux hooks setup`; Claude doesn't.)
 
-```json
-{
-  "hooks": {
-    "Notification": [
-      { "hooks": [ {
-        "type": "command",
-        "command": "command -v cmux >/dev/null 2>&1 || exit 0; msg=$(jq -r '.message // empty' 2>/dev/null); cmux notify --title \"Claude Code\" --body \"${msg:-Waiting for you}\"",
-        "async": true
-      } ] }
-    ],
-    "Stop": [
-      { "hooks": [ {
-        "type": "command",
-        "command": "command -v cmux >/dev/null 2>&1 || exit 0; dir=$(jq -r '.cwd // empty' 2>/dev/null); cmux notify --title \"Claude Code — done\" --body \"${dir##*/}\"",
-        "async": true
-      } ] }
-    ]
-  }
-}
-```
+A manual `cmux notify` hook is actively wrong here: it would **double-fire** inside cmux, and
+**error** (`Failed to write to socket (Broken pipe)`) anywhere else — because `cmux notify` only
+resolves a target when run *inside* a cmux pane (it reads `CMUX_*` session env vars). That same
+reason is why a standalone `cmux notify --title test` from Ghostty/Terminal fails; it's expected,
+not a bug.
 
-- **`Notification`** fires when Claude needs you (permission / waiting on input); body = Claude's
-  own notification text.
-- **`Stop`** fires when a turn finishes; body = the repo folder name (so a backgrounded
-  workspace's tab tells you *which* repo is done). It fires **every** turn — if that's noisy in
-  the focused pane, disable just this one via the `/hooks` menu and keep `Notification`.
+### Verify
 
-After editing settings, open **`/hooks`** once (or restart Claude Code) so the hook config
-reloads.
+Open cmux → open a workspace on a repo → run `claude` in that pane → trigger a permission prompt
+or let a turn finish. The pane should ring / the sidebar tab should light. If you'd previously
+added manual `cmux notify` hooks, remove them (`/hooks` menu) so they don't double up.
