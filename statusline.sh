@@ -109,9 +109,6 @@ case "${STATUSLINE_CAP_GAP:-0}" in
   *) cap_gap="${e}[49m$(printf "%${STATUSLINE_CAP_GAP}s" '')" ;;
 esac
 
-# Bold segment text (uses the font's bold face). STATUSLINE_BOLD=0 to disable.
-case "${STATUSLINE_BOLD:-1}" in 0|false|no) BOLD="" ;; *) BOLD="${e}[1m" ;; esac
-
 # ── renderers ─────────────────────────────────────────────────────────────────
 # Left chain: "bg|fg|text" ... — angled OUTER_L cap, slant trailing cap into gap.
 render_lchain() {
@@ -124,7 +121,7 @@ render_lchain() {
     else
       out="${out}${e}[48;5;${bg}m${e}[38;5;${prev_bg}m${SEP}"
     fi
-    out="${out}${e}[48;5;${bg}m${e}[38;5;${fg}m${BOLD} ${txt} "
+    out="${out}${e}[48;5;${bg}m${e}[38;5;${fg}m ${txt} "
     prev_bg="$bg"
   done
   if [ -n "$out" ]; then
@@ -143,7 +140,7 @@ render_rchain() {
     else
       out="${out}${e}[48;5;${prev_bg}m${e}[38;5;${bg}m${RSEP}"
     fi
-    out="${out}${e}[48;5;${bg}m${e}[38;5;${fg}m${BOLD} ${txt} "
+    out="${out}${e}[48;5;${bg}m${e}[38;5;${fg}m ${txt} "
     prev_bg="$bg"
   done
   [ -n "$out" ] && out="${out}${e}[49m${e}[38;5;${prev_bg}m${OUTER_R}${RESET}"
@@ -227,7 +224,7 @@ if [ -n "$cwd" ] && command -v git >/dev/null 2>&1; then
     prefix=$(git -C "$cwd" --no-optional-locks rev-parse --show-prefix 2>/dev/null)
     prefix=${prefix%/}
     repo_disp="${gitroot##*/}${prefix:+/$prefix}"
-    r+=("${REPO_BG}|${REPO_FG}|${repo_disp}")
+    r+=("${REPO_BG}|${REPO_FG}|${e}[1m${repo_disp}${e}[22m")   # repo name in bold
     branch=$(git -C "$cwd" --no-optional-locks symbolic-ref --short HEAD 2>/dev/null)
     if [ -n "$branch" ]; then
       dirty=$(git -C "$cwd" --no-optional-locks status --porcelain 2>/dev/null | head -1)
