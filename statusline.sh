@@ -147,15 +147,20 @@ render_rchain() {
   printf '%s' "$out"
 }
 
-# Visible width. Powerline/Nerd PUA glyphs and emoji render as 2 cells in many
-# terminals (e.g. Ghostty), so count those as width 2; ANSI is stripped first.
+# Visible width (ANSI stripped). Measured in Ghostty: powerline separators + Nerd
+# icons are 1 cell; flame glyphs (E0C0-E0C3) are 2; emoji are 2; the brain 🧠 is 3.
 visw() {
   printf '%s' "$1" | perl -CS -e '
     local $/; my $s = <STDIN>; $s =~ s/\x1b\[[0-9;]*m//g;
     my $w = 0;
-    for (split //, $s) { my $o = ord; next if $o == 0xFE0F;
-      $w += ( ($o>=0xE000 && $o<=0xF8FF) || ($o>=0xF0000 && $o<=0xFFFFD)
-              || $o>=0x1F000 || ($o>=0x2300 && $o<=0x27BF) ) ? 2 : 1; }
+    for (split //, $s) { my $o = ord;
+      next if $o == 0xFE0F;                                  # variation selector
+      if    ($o == 0x1F9E0)                { $w += 3; }       # brain
+      elsif ($o >= 0xE0C0 && $o <= 0xE0C3) { $w += 2; }       # flame separators
+      elsif ($o >= 0x1F000)                { $w += 2; }       # emoji
+      elsif ($o >= 0x2600 && $o <= 0x27BF) { $w += 2; }       # misc emoji
+      else                                 { $w += 1; }       # text, powerline, icons
+    }
     print $w;'
 }
 
