@@ -114,3 +114,68 @@ cache); it corrects on the next command. To force-clear it: `rm -f ~/.cache/p10k
 > The status line's location logic lives in the `case "$cwd"` block near the RIGHT section of
 > `statusline.sh`; the p10k logic lives in `p10k-dir-icons.zsh`. Keep the two `~/Resilio Sync`
 > patterns in sync if you change one.
+
+---
+
+## 6. cmux notifications (optional, macOS only)
+
+[cmux](https://cmux.com) is a macOS terminal built on libghostty (reads your existing
+`~/.config/ghostty/config`) with a per-workspace sidebar — it lights up a tab / rings a pane
+when an agent there is waiting. These Claude Code hooks drive that indicator. **macOS 14+,
+Apple Silicon or Intel.** Skip this section on the Minis if you stay on Ghostty, and on Linux.
+
+### Install cmux
+
+```sh
+brew tap manaflow-ai/cmux
+brew install --cask cmux
+# update later: brew upgrade --cask cmux
+```
+
+(Or download the DMG from the [latest release](https://github.com/manaflow-ai/cmux/releases/latest)
+and drag to Applications — that path auto-updates via Sparkle.)
+
+### Put the `cmux` CLI on PATH (required for the hooks)
+
+The hooks call `cmux notify`, so the CLI must be resolvable — otherwise they silently no-op:
+
+```sh
+sudo ln -sf "/Applications/cmux.app/Contents/Resources/bin/cmux" /usr/local/bin/cmux
+cmux notify --title "test" --body "hello"   # should pop a notification
+```
+
+### Wire the hooks (`~/.claude/settings.json`)
+
+Merge this `hooks` block into your existing settings (don't clobber other keys). Both hooks
+are **guarded** (`command -v cmux || exit 0`) so they're a clean no-op on any machine without
+cmux, and **async** so they never add latency to a turn:
+
+```json
+{
+  "hooks": {
+    "Notification": [
+      { "hooks": [ {
+        "type": "command",
+        "command": "command -v cmux >/dev/null 2>&1 || exit 0; msg=$(jq -r '.message // empty' 2>/dev/null); cmux notify --title \"Claude Code\" --body \"${msg:-Waiting for you}\"",
+        "async": true
+      } ] }
+    ],
+    "Stop": [
+      { "hooks": [ {
+        "type": "command",
+        "command": "command -v cmux >/dev/null 2>&1 || exit 0; dir=$(jq -r '.cwd // empty' 2>/dev/null); cmux notify --title \"Claude Code — done\" --body \"${dir##*/}\"",
+        "async": true
+      } ] }
+    ]
+  }
+}
+```
+
+- **`Notification`** fires when Claude needs you (permission / waiting on input); body = Claude's
+  own notification text.
+- **`Stop`** fires when a turn finishes; body = the repo folder name (so a backgrounded
+  workspace's tab tells you *which* repo is done). It fires **every** turn — if that's noisy in
+  the focused pane, disable just this one via the `/hooks` menu and keep `Notification`.
+
+After editing settings, open **`/hooks`** once (or restart Claude Code) so the hook config
+reloads.
