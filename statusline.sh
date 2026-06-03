@@ -29,6 +29,10 @@ SUBSEP=$(printf '\xee\x82\xb1')   # E0B1  thin separator (same-color neighbors)
 RSEP=$(printf '\xee\x82\xb2')     # E0B2  internal right-prompt separator (◄)
 BR=$(printf '\xef\x84\xa6')       # F126  VCS branch icon
 CLOCK=$(printf '\xef\x80\x97')    # F017  clock
+# Location-based dir-class icons (mirror p10k POWERLEVEL9K_DIR_CLASSES):
+HOUSE=$(printf '\xef\x80\x95')    # F015  home   — exact $HOME
+SYNC=$(printf '\xef\x80\xa1')     # F021  sync   — ~/Resilio Sync subtree
+FOLDER=$(printf '\xef\x81\xbb')   # F07B  folder — everywhere else
 CTX_ICON=${STATUSLINE_CTX_ICON:-$(printf '\xf0\x9f\xa7\xa0')}   # 🧠 brain
 # cap glyphs
 PL_RT=$(printf '\xee\x82\xb0')    # E0B0  pointed ►
@@ -215,6 +219,13 @@ build_left() {
 
 # ── RIGHT: repo (no root path) · branch · clock ──────────────────────────────
 cwd=$(jqr '.cwd')
+# Location-based dir icon, mirroring the p10k DIR_CLASSES strategy: exact $HOME →
+# house, ~/Resilio Sync subtree → sync, everything else → folder.
+dir_icon="$FOLDER"
+case "$cwd" in
+  "$HOME")                                       dir_icon="$HOUSE" ;;
+  "$HOME/Resilio Sync"|"$HOME/Resilio Sync/"*)   dir_icon="$SYNC"  ;;
+esac
 r=()
 if [ -n "$cwd" ] && command -v git >/dev/null 2>&1; then
   gitroot=$(git -C "$cwd" --no-optional-locks rev-parse --show-toplevel 2>/dev/null)
@@ -224,7 +235,7 @@ if [ -n "$cwd" ] && command -v git >/dev/null 2>&1; then
     prefix=$(git -C "$cwd" --no-optional-locks rev-parse --show-prefix 2>/dev/null)
     prefix=${prefix%/}
     repo_disp="${gitroot##*/}${prefix:+/$prefix}"
-    r+=("${REPO_BG}|${REPO_FG}|${e}[1m${repo_disp}${e}[22m")   # repo name in bold
+    r+=("${REPO_BG}|${REPO_FG}|${dir_icon} ${e}[1m${repo_disp}${e}[22m")   # location icon + repo name (bold)
     branch=$(git -C "$cwd" --no-optional-locks symbolic-ref --short HEAD 2>/dev/null)
     if [ -n "$branch" ]; then
       dirty=$(git -C "$cwd" --no-optional-locks status --porcelain 2>/dev/null | head -1)
