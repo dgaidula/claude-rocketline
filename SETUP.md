@@ -1,0 +1,116 @@
+# Portable setup
+
+Get the **Claude Code status line** and the **matching Powerlevel10k prompt icons**
+running on a new machine (macOS or AlmaLinux / RHEL-family). Both pieces share one
+icon language — house / sync / folder / lock by location — so your shell prompt and
+Claude Code always agree on *where you are*.
+
+```
+ home ()      → you are in $HOME
+ sync ()      → you are under ~/Resilio Sync
+ folder ()    → anywhere else
+ lock ()      → directory isn't writable (root-owned, needs sudo)
+```
+
+---
+
+## 1. Prerequisites
+
+| Need | Why | macOS | AlmaLinux / RHEL |
+|---|---|---|---|
+| **Nerd Font** (client-side) | renders the glyphs | `brew install --cask font-meslo-lg-nerd-font` | install on your **local** terminal, not the server (see note) |
+| `jq` | status line parses Claude's JSON | `brew install jq` | `sudo dnf install -y jq` |
+| `git` | status line repo/branch segment | preinstalled (Xcode CLT) | `sudo dnf install -y git` |
+| `perl` | status line width math (`-CSD`) | preinstalled | preinstalled (`perl-core`) |
+| `zsh` + **Powerlevel10k** | the prompt icons (optional — only for the p10k piece) | `brew install powerlevel10k` | see below |
+
+> **Nerd Font is a client-side thing.** Glyphs are drawn by the terminal you're *looking
+> at*. When you SSH into the Linode, install the Nerd Font on the **Mac** running the
+> terminal — nothing font-related needs to exist on the server. The status line's OS icon
+> auto-switches to the Linux glyph () on the server on its own.
+
+**Powerlevel10k on AlmaLinux** (not packaged in the default repos):
+
+```sh
+sudo dnf install -y zsh
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
+echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >> ~/.zshrc
+# optional: make zsh your login shell
+chsh -s "$(command -v zsh)"
+```
+
+Run `p10k configure` once (pick the **Rainbow** style) to generate `~/.p10k.zsh`.
+
+---
+
+## 2. Install the status line
+
+```sh
+git clone https://github.com/<you>/claude-code-statusline.git
+cd claude-code-statusline
+./install.sh        # copies statusline.sh → ~/.claude/ and prints the settings snippet
+```
+
+Then add to `~/.claude/settings.json` (merge with any existing config):
+
+```json
+{
+  "statusLine": { "type": "command", "command": "~/.claude/statusline.sh" }
+}
+```
+
+Dark theme + rounded caps instead:
+
+```json
+"command": "STATUSLINE_THEME=dark-dan STATUSLINE_CAPS=rounded ~/.claude/statusline.sh"
+```
+
+---
+
+## 3. Install the matching p10k prompt icons (optional)
+
+The drop-in `p10k/p10k-dir-icons.zsh` sets the location classes/icons. Source it **after**
+`~/.p10k.zsh` so it overrides the generated config and **survives `p10k configure` re-runs**:
+
+```sh
+mkdir -p ~/.config/p10k
+cp p10k/p10k-dir-icons.zsh ~/.config/p10k/
+
+# add to ~/.zshrc, right after the line that sources ~/.p10k.zsh:
+cat >> ~/.zshrc <<'EOF'
+[[ ! -f ~/.config/p10k/p10k-dir-icons.zsh ]] || source ~/.config/p10k/p10k-dir-icons.zsh
+EOF
+
+exec zsh   # reload
+```
+
+`~/.zshrc` order matters — the source line must come **after** `source ~/.p10k.zsh`.
+
+---
+
+## 4. Verify
+
+- **Status line:** open a Claude Code session — you should see a location icon before the
+  repo name (sync/folder/lock as appropriate).
+- **Prompt:** `cd ~` → house; `cd` into `~/Resilio Sync/...` → sync; anywhere else → folder;
+  `cd /usr` (or any root-owned dir) → lock.
+
+After `exec zsh`, the **first** prompt line may be a stale snapshot (p10k's instant-prompt
+cache); it corrects on the next command. To force-clear it: `rm -f ~/.cache/p10k-instant-prompt-*.zsh`.
+
+---
+
+## 5. Per-host tweaks
+
+- **No `~/Resilio Sync` on a host** (e.g. the Linode)? The sync rule is a harmless no-op
+  there and you simply get folders. To repurpose it for a different tree, edit the first
+  pattern in `p10k-dir-icons.zsh` (and the status line's `case "$cwd"` block) — both use the
+  same `~/Resilio Sync` convention.
+- **Whole home tree as a house** (not just `$HOME` itself): change the `'~'` pattern to
+  `'~(|/*)'` in `p10k-dir-icons.zsh`.
+- **Path depth:** `POWERLEVEL9K_SHORTEN_DIR_LENGTH` in the drop-in (2 = parent/dir, 3 adds
+  the grandparent).
+
+> The status line's location logic lives in the `case "$cwd"` block near the RIGHT section of
+> `statusline.sh`; the p10k logic lives in `p10k-dir-icons.zsh`. Keep the two `~/Resilio Sync`
+> patterns in sync if you change one.

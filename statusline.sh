@@ -33,6 +33,7 @@ CLOCK=$(printf '\xef\x80\x97')    # F017  clock
 HOUSE=$(printf '\xef\x80\x95')    # F015  home   — exact $HOME
 SYNC=$(printf '\xef\x80\xa1')     # F021  sync   — ~/Resilio Sync subtree
 FOLDER=$(printf '\xef\x81\xbb')   # F07B  folder — everywhere else
+LOCK=$(printf '\xef\x80\xa3')     # F023  lock   — non-writable dir (mirrors p10k SHOW_WRITABLE=v3)
 CTX_ICON=${STATUSLINE_CTX_ICON:-$(printf '\xf0\x9f\xa7\xa0')}   # 🧠 brain
 # cap glyphs
 PL_RT=$(printf '\xee\x82\xb0')    # E0B0  pointed ►
@@ -226,6 +227,8 @@ case "$cwd" in
   "$HOME")                                       dir_icon="$HOUSE" ;;
   "$HOME/Resilio Sync"|"$HOME/Resilio Sync/"*)   dir_icon="$SYNC"  ;;
 esac
+# Non-writable dir → lock, mirroring p10k POWERLEVEL9K_DIR_SHOW_WRITABLE=v3.
+[ -n "$cwd" ] && [ ! -w "$cwd" ] && dir_icon="$LOCK"
 r=()
 if [ -n "$cwd" ] && command -v git >/dev/null 2>&1; then
   gitroot=$(git -C "$cwd" --no-optional-locks rev-parse --show-toplevel 2>/dev/null)
