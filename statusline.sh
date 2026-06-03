@@ -240,7 +240,11 @@ cols=$(jqr '.terminal.width'); [ -z "$cols" ] && cols=$(jqr '.cols')
 [ -z "$cols" ] && cols="$COLUMNS"
 [ -z "$cols" ] && cols=$(tput cols 2>/dev/null)
 case "$cols" in ''|*[!0-9]*) cols=100 ;; esac
-avail=$(( cols - 1 ))            # reserve the last column (avoid edge-wrap)
+# Reserve the last column, plus an optional manual nudge for terminal-specific
+# width quirks (Claude Code's COLUMNS sits slightly off). STATUSLINE_WIDTH_ADJUST
+# is a signed integer: negative = end further from the right edge (e.g. -1).
+adj=${STATUSLINE_WIDTH_ADJUST:-0}; [ "$adj" -eq "$adj" ] 2>/dev/null || adj=0
+avail=$(( cols - 1 + adj ))
 
 # ── fit LEFT: keep the least-trimmed left that fits (degrade only when forced) ──
 left=""; lw=0
