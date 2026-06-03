@@ -32,6 +32,7 @@
 typeset -g POWERLEVEL9K_DIR_PARENT_MAX_LEN=${POWERLEVEL9K_DIR_PARENT_MAX_LEN:-16}
 typeset -g POWERLEVEL9K_SHORTEN_DIR_LENGTH=${POWERLEVEL9K_SHORTEN_DIR_LENGTH:-2}
 typeset -g POWERLEVEL9K_DIR_SYNC_ROOT=${POWERLEVEL9K_DIR_SYNC_ROOT:-$HOME/Resilio Sync}
+typeset -g POWERLEVEL9K_DIR_NARROW_COLS=${POWERLEVEL9K_DIR_NARROW_COLS:-80}
 
 typeset -g _P9K_DIR_ICON_HOME=${_P9K_DIR_ICON_HOME:-$''}     # house  (F015)
 typeset -g _P9K_DIR_ICON_SYNC=${_P9K_DIR_ICON_SYNC:-$''}     # sync   (F021)
@@ -45,6 +46,8 @@ function prompt_cappeddir() {
   local -i maxlen=$POWERLEVEL9K_DIR_PARENT_MAX_LEN
   local -i depth=$POWERLEVEL9K_SHORTEN_DIR_LENGTH
   (( depth > 0 )) || depth=2
+  local -i narrow=${POWERLEVEL9K_DIR_NARROW_COLS:-80}
+  (( narrow > 0 && COLUMNS > 0 && COLUMNS < narrow )) && depth=1   # tight pane -> repo only
 
   # ~ abbreviation, then split into path segments (empties dropped by zsh).
   local disp=$pwd
@@ -65,11 +68,13 @@ function prompt_cappeddir() {
   local -i i n=$#parts
   for (( i = 1; i <= n; ++i )); do
     seg=$parts[i]
-    if (( i == 1 && n > 1 && $#seg > maxlen )); then     # cap the parent
-      cut=${seg[1,maxlen]}
-      text+="${b}%F{$afg}${cut//\%/%%}${nb}%F{$sfg}…"
-    else                                                  # anchor (bold)
+    if (( i == n )); then                                  # repo (last) — the only bold part
       text+="${b}%F{$afg}${seg//\%/%%}${nb}"
+    elif (( i == 1 && n > 1 && $#seg > maxlen )); then     # capped parent — not bold
+      cut=${seg[1,maxlen]}
+      text+="%F{$fg}${cut//\%/%%}%F{$sfg}…"
+    else                                                   # parent(s) — not bold
+      text+="%F{$fg}${seg//\%/%%}"
     fi
     (( i < n )) && text+="%F{$fg}/"
   done

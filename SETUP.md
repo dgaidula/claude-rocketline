@@ -117,7 +117,10 @@ cache); it corrects on the next command. To force-clear it: `rm -f ~/.cache/p10k
 - **Parent cap length:** `POWERLEVEL9K_DIR_PARENT_MAX_LEN` in the drop-in (default 16 →
   `FVD-20-1111 Chef…`). Set high (e.g. 99) to effectively disable capping.
 - **Path depth:** `POWERLEVEL9K_SHORTEN_DIR_LENGTH` in the drop-in (2 = parent/repo, 3 adds
-  the grandparent). Only the first shown segment is capped.
+  the grandparent). Only the first shown segment is capped; only the last (repo) is bold.
+- **Narrow panes:** `POWERLEVEL9K_DIR_NARROW_COLS` (default 80) — when `$COLUMNS` is below this
+  (e.g. a tight cmux split), depth collapses to **1** (repo only, parent dropped). Set `0` to
+  disable the responsive collapse.
 - **Sync tree:** `POWERLEVEL9K_DIR_SYNC_ROOT` (default `~/Resilio Sync`) picks which tree gets
   the sync icon; harmless no-op on hosts without it.
 - **Icons / colors:** `_P9K_DIR_ICON_{HOME,SYNC,FOLDER,LOCK}` override glyphs; the segment
