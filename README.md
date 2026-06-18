@@ -1,11 +1,11 @@
-# claude-code-statusline
+# claude-rocketline
 
 A compact, themeable [Claude Code](https://claude.com/claude-code) status line, styled like a
 [Powerlevel10k](https://github.com/romkatv/powerlevel10k) prompt — angled powerline segments, a
 context-window meter, git info, and a clock. Built by a designer who cared too much about a
 single line in a terminal. 🏎️🔥
 
-![claude-code-statusline — danny theme](docs/hero.png)
+![claude-rocketline — danny theme](docs/hero.png)
 
 <sub>(plain-text fallback if the image hasn't loaded:)</sub>
 
@@ -54,8 +54,8 @@ Reproduce it yourself: `bash demos/responsive.sh` (widen to ~115 cols, then scre
 ## Install
 
 ```bash
-git clone https://github.com/<you>/claude-code-statusline.git
-cd claude-code-statusline
+git clone https://github.com/<you>/claude-rocketline.git
+cd claude-rocketline
 ./install.sh        # copies statusline.sh to ~/.claude/ and prints the settings snippet
 ```
 
