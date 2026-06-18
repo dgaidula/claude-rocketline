@@ -37,6 +37,17 @@ Reproduce it yourself: `bash demos/responsive.sh` (widen to ~115 cols, then scre
 
 - **A [Nerd Font](https://www.nerdfonts.com/)** (e.g. `MesloLGS NF`, the Powerlevel10k default).
   Without one, the powerline separators, flame, apple, branch, and brain glyphs render as tofu (□).
+  - You don't have to make a Nerd Font your *primary* terminal font. Any terminal with a
+    font-fallback chain (Ghostty, kitty, WezTerm) lets you keep a ligature-rich coding font
+    as primary and add a Nerd Font as a **fallback** — the icon codepoints resolve from the
+    fallback while your code keeps its ligatures. In Ghostty, just repeat `font-family`:
+    ```
+    font-family = Your-Coding-Font
+    font-family = Symbols Nerd Font Mono
+    ```
+    Prefer the **symbols-only** build (`brew install --cask font-symbols-only-nerd-font`) so
+    the fallback only supplies icons and never lends a stray Latin glyph. No p10k/statusline
+    changes are needed — they just emit the codepoints; the terminal renders them.
 - `bash`, `jq`, and `git` on `PATH`.
 - Claude Code (the status line reads its JSON from stdin).
 
