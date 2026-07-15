@@ -5,7 +5,7 @@ A compact, themeable [Claude Code](https://claude.com/claude-code) status line, 
 context-window meter, git info, and a clock. Built by a designer who cared too much about a
 single line in a terminal. 🏎️🔥
 
-##About
+## About
 
 I've been a designer for 30 years and a developer for most of them — terminal-first for 25 of those, Powerlevel10k user for the last five. When Claude Code landed I already had strong opinions about what a status line should do. The default felt like a missed opportunity.
 
