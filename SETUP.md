@@ -46,8 +46,8 @@ Run `p10k configure` once (pick the **Rainbow** style) to generate `~/.p10k.zsh`
 ## 2. Install the status line
 
 ```sh
-git clone https://github.com/<you>/claude-code-statusline.git
-cd claude-code-statusline
+git clone https://github.com/dgaidula/claude-rocketline.git
+cd claude-rocketline
 ./install.sh        # copies statusline.sh → ~/.claude/ and prints the settings snippet
 ```
 

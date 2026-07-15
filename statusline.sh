@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# claude-code-statusline — statusline.sh
+# claude-rocketline — statusline.sh
 # Compact, themeable Claude Code status line in p10k "Rainbow" angled style.
 #   LEFT  — <os> 🤖 (apple+AI) · model (dark blue) · context % | reset (compact bar)
 #   RIGHT — repo name (no root path) ·  branch · clock   (right-aligned)

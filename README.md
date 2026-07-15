@@ -5,7 +5,17 @@ A compact, themeable [Claude Code](https://claude.com/claude-code) status line, 
 context-window meter, git info, and a clock. Built by a designer who cared too much about a
 single line in a terminal. 🏎️🔥
 
-![claude-rocketline — danny theme](docs/hero.png)
+##About
+
+I've been a designer for 30 years and a developer for most of them — terminal-first for 25 of those, Powerlevel10k user for the last five. When Claude Code landed I already had strong opinions about what a status line should do. The default felt like a missed opportunity.
+
+So I built one. Named themes, a responsive shed order, a context meter that shifts from green to red as the window fills, and end caps styled like a rocket on a rail. The `danny` and `dark-dan` themes are mine (dial them in with environment variables or swap in your own colors).
+
+This is a designer's take on a developer tool. Opinionated, themeable, and built to stay on one line no matter what.
+
+
+
+<img src="docs/hero.png" width="1020" alt="claude-rocketline — danny theme">
 
 <sub>(plain-text fallback if the image hasn't loaded:)</sub>
 
@@ -19,8 +29,8 @@ single line in a terminal. 🏎️🔥
   `| 3h30m` 5-hour-limit reset countdown
 - **Repo · branch · clock** — right-aligned; repo shows the folder name (no long root path),
   branch is color-coded clean/dirty
-- **Signature "race car" ends** — a flame trailing the left, a slant `/` nosing the right, so the
-  line reads like it's moving left→right
+- **Signature rocket ends** — a flame trailing the left, a slant `/` nosing the right, so the
+  line reads like it's moving left→right 🚀
 
 ## Responsive layout
 
@@ -29,7 +39,7 @@ clipping**, then trims the model label — so it always stays on one line. Peel 
 
 `clock → branch → repo → reset countdown → [effort] → (model qualifier) → context chip`
 
-![responsive layout across terminal widths](docs/responsive.png)
+<img src="docs/responsive.png" width="1020" alt="responsive layout across terminal widths">
 
 Reproduce it yourself: `bash demos/responsive.sh` (widen to ~115 cols, then screenshot).
 
@@ -45,6 +55,9 @@ Reproduce it yourself: `bash demos/responsive.sh` (widen to ~115 cols, then scre
     font-family = Your-Coding-Font
     font-family = Symbols Nerd Font Mono
     ```
+    [Berkeley Mono](https://usgraphics.com/products/berkeley-mono) pairs especially well in
+    this role — it ships specialized coding ligatures (`===`, `++`, `!=`, `->`, `=>`, etc.)
+    that carry through unaffected while the Nerd Font fallback supplies the icon codepoints.
     Prefer the **symbols-only** build (`brew install --cask font-symbols-only-nerd-font`) so
     the fallback only supplies icons and never lends a stray Latin glyph. No p10k/statusline
     changes are needed — they just emit the codepoints; the terminal renders them.
@@ -54,7 +67,7 @@ Reproduce it yourself: `bash demos/responsive.sh` (widen to ~115 cols, then scre
 ## Install
 
 ```bash
-git clone https://github.com/<you>/claude-rocketline.git
+git clone https://github.com/dgaidula/claude-rocketline.git
 cd claude-rocketline
 ./install.sh        # copies statusline.sh to ~/.claude/ and prints the settings snippet
 ```
@@ -97,6 +110,10 @@ Set via environment variables in the `command` (they compose):
   orange-flame accent.
 - **`dark-dan`** — true dark: dim grey neutrals, teal-blue model/repo, muted context colors, with
   the flame as the one bright accent.
+
+<img src="docs/showcase.png" width="1020" alt="themes and cap styles">
+
+<sub>(plain-text fallback — run `bash demos/showcase.sh` to see it live)</sub>
 
 ## Demos
 

@@ -13,13 +13,16 @@ if [ ! -e "$DEMO/.git" ]; then
 fi
 W=$(tput cols 2>/dev/null); case "$W" in ''|*[!0-9]*) W=118 ;; esac
 R5=$(( $(date +%s) + 12600 ))   # ~3h30m
+export STATUSLINE_CAP_GAP=1     # matches live settings — flame looks flush without it
+
+LABEL_W=29   # '  %-26s ' = 2 + 26 + 1
 
 scene() { # $1 label  $2 used%  $3 dirty(1/0)  $4 extra-env...
   local label=$1 used=$2 dirty=$3; shift 3
   if [ "$dirty" = 1 ]; then touch "$DEMO/draft.txt"; else rm -f "$DEMO/draft.txt"; fi
   printf '  %-26s ' "$label"
   printf '{"model":{"display_name":"Opus 4.8 (1M context)"},"effort":{"level":"high"},"context_window":{"used_percentage":%s},"rate_limits":{"five_hour":{"resets_at":%s}},"cwd":"%s","terminal":{"width":%s}}' \
-    "$used" "$R5" "$DEMO" "$W" | env "$@" bash "$SL"
+    "$used" "$R5" "$DEMO" "$(( W - LABEL_W ))" | env "$@" bash "$SL"
   printf '\n'
 }
 

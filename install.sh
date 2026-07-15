@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installer for claude-code-statusline.
+# Installer for claude-rocketline.
 # Copies statusline.sh into ~/.claude/ and prints the settings.json snippet to add.
 # Also stages the optional Powerlevel10k dir-icon drop-in (see SETUP.md).
 set -e

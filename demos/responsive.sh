@@ -13,6 +13,7 @@ if [ ! -e "$DEMO/.git" ]; then
 fi
 touch "$DEMO/draft.txt"
 R5=$(( $(date +%s) + 12600 ))   # ~3h30m, so the reset countdown shows
+export STATUSLINE_CAP_GAP=1     # matches live settings — flame looks flush without it
 
 at_width() {  # $1 = columns
   printf '{"model":{"display_name":"Opus 4.8 (1M context)"},"effort":{"level":"high"},"context_window":{"used_percentage":30},"rate_limits":{"five_hour":{"resets_at":%s}},"cwd":"%s","terminal":{"width":%s}}' \

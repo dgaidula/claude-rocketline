@@ -1,6 +1,6 @@
 # p10k-dir-icons.zsh — location-based directory icon + capped-parent dir segment.
 #
-# Drop-in companion to the claude-code-statusline project: it teaches the p10k
+# Drop-in companion to the claude-rocketline project: it teaches the p10k
 # prompt the same icon language the status line uses, so your shell prompt and
 # Claude Code agree on "where am I" — and it caps the long parent directory so a
 # deep path stays short on small / split panes.
