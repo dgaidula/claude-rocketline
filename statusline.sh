@@ -10,6 +10,8 @@
 #   STATUSLINE_OS_ICON = <glyph>                   (default: auto by OS)
 #   STATUSLINE_FLAME = F2920D | <256-num>  (flame accent; auto-truecolor via COLORTERM)
 #   STATUSLINE_CTX_ICON, STATUSLINE_PIPE, STATUSLINE_LCAP, STATUSLINE_RCAP  (fine overrides)
+#   STATUSLINE_RC = 1 (force Remote Control indicator) ; STATUSLINE_RC_STYLE = auto|segment|badge
+#   STATUSLINE_RC_ICON = <glyph>                   (default: F09E broadcast)
 # Requires a Nerd Font (e.g. MesloLGS NF). Efficient: stdin read once; jq once per field.
 
 [ -z "$LC_ALL" ] && export LC_ALL=en_US.UTF-8
@@ -94,6 +96,24 @@ flame_sgr() {  # arg: hex (6 digits, optional #) → 24-bit; else 256-color numb
 if [ -n "$STATUSLINE_FLAME" ]; then flame_fg=$(flame_sgr "$STATUSLINE_FLAME")
 elif [ "$COLORTERM" = truecolor ] || [ "$COLORTERM" = 24bit ]; then flame_fg=$(flame_sgr F2920D)
 else flame_fg=$(flame_sgr "$FLAME_COLOR"); fi
+
+# ── remote control indicator ──────────────────────────────────────────────────
+# Active when Claude Code reports a connected Remote Control session (the
+# undocumented .remote payload field), or forced via STATUSLINE_RC=1.
+#   STATUSLINE_RC_STYLE = auto (default) | segment | badge
+#   auto    — "live" chip in the right chain while it fits; when width forces
+#             the chip out it migrates into the left badge, so RC state is
+#             never dropped.
+#   segment — chip only (drops like any right segment when narrow)
+#   badge   — flame-colored glyph in the badge only
+rc_active=""
+[ -n "$(jqr '.remote.session_id')" ] && rc_active=1
+[ -n "$STATUSLINE_RC" ] && rc_active=1
+RC_STYLE=${STATUSLINE_RC_STYLE:-auto}
+RC_ICON=${STATUSLINE_RC_ICON:-$(printf '\xef\x82\x9e')}   # F09E broadcast
+rc_chip="208|232|${RC_ICON} live"
+rc_in_badge=""
+[ -n "$rc_active" ] && [ "$RC_STYLE" = badge ] && rc_in_badge=1
 
 # ── end caps (outer ends + the two caps facing the center gap) ────────────────
 case "${STATUSLINE_CAPS:-flame}" in
@@ -206,7 +226,9 @@ build_left() {
     2)   mtxt="$model_noeff" ;;
     *)   mtxt="$model_short" ;;
   esac
-  ll=("${BADGE_BG}|${BADGE_FG}|${OS_ICON} 🤖" "${MODEL_BG}|${MODEL_FG}|${mtxt}")
+  local badge="${OS_ICON} 🤖"
+  [ -n "$rc_in_badge" ] && badge="${badge} ${flame_fg}${RC_ICON}${e}[38;5;${BADGE_FG}m"
+  ll=("${BADGE_BG}|${BADGE_FG}|${badge}" "${MODEL_BG}|${MODEL_FG}|${mtxt}")
   if [ -n "$has_ctx" ]; then
     case "$lvl" in
       0)     ctxt="${CTX_ICON} ${remaining}%${reset_str}" ;;  # full
@@ -247,6 +269,8 @@ if [ -n "$cwd" ] && command -v git >/dev/null 2>&1; then
     fi
   fi
 fi
+# RC chip sits inboard of the clock, so the clock drops before it when narrow.
+[ -n "$rc_active" ] && [ "$RC_STYLE" != badge ] && r+=("$rc_chip")
 r+=("${TIME_BG}|${TIME_FG}|${CLOCK} $(date '+%H:%M:%S')")
 
 # ── terminal width ────────────────────────────────────────────────────────────
@@ -261,21 +285,29 @@ adj=${STATUSLINE_WIDTH_ADJUST:-0}; [ "$adj" -eq "$adj" ] 2>/dev/null || adj=0
 avail=$(( cols - 1 + adj ))
 
 # ── fit LEFT: keep the least-trimmed left that fits (degrade only when forced) ──
-left=""; lw=0
-for lvl in 0 1 2 3 4; do
-  left=$(build_left "$lvl"); lw=$(visw "$left")
-  [ "$lw" -le "$avail" ] && break
-done
+fit_left() {
+  left=""; lw=0
+  for lvl in 0 1 2 3 4; do
+    left=$(build_left "$lvl"); lw=$(visw "$left")
+    [ "$lw" -le "$avail" ] && break
+  done
+}
+fit_left
 
-# ── fit RIGHT: drop segments (clock → branch → repo) until it fits beside left ──
+# ── fit RIGHT: drop segments (clock → rc → branch → repo) until it fits ───────
 right=""
 while [ "${#r[@]}" -gt 0 ]; do
   cand=$(render_rchain "${r[@]}")
   if [ $(( lw + 1 + $(visw "$cand") )) -le "$avail" ]; then
     right="$cand"; break
   fi
+  dropped=${r[$(( ${#r[@]} - 1 ))]}
   unset "r[$(( ${#r[@]} - 1 ))]"  # drop the rightmost segment
   r=("${r[@]}")                   # reindex
+  # auto: the RC chip forced out → migrate it into the badge (never dropped)
+  if [ "$dropped" = "$rc_chip" ] && [ "$RC_STYLE" = auto ]; then
+    rc_in_badge=1; fit_left
+  fi
 done
 
 # ── emit (right-aligned, padded to avail) ─────────────────────────────────────
