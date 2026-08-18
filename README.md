@@ -64,7 +64,7 @@ Reproduce it yourself: `bash demos/responsive.sh` (widen to ~115 cols, then scre
     Prefer the **symbols-only** build (`brew install --cask font-symbols-only-nerd-font`) so
     the fallback only supplies icons and never lends a stray Latin glyph. No p10k/statusline
     changes are needed — they just emit the codepoints; the terminal renders them.
-- `bash`, `jq`, and `git` on `PATH`.
+- `bash`, `jq`, `git`, and `perl` on `PATH` (perl computes visible string width for the responsive shedding; `install.sh` checks for all four).
 - Claude Code (the status line reads its JSON from stdin).
 
 ## Install
