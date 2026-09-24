@@ -12,6 +12,7 @@
 #   STATUSLINE_CTX_ICON, STATUSLINE_PIPE, STATUSLINE_LCAP, STATUSLINE_RCAP  (fine overrides)
 #   STATUSLINE_RC = 1 (force Remote Control indicator) ; STATUSLINE_RC_STYLE = auto|segment|badge
 #   STATUSLINE_RC_ICON = <glyph>                   (default: F09E broadcast)
+#   STATUSLINE_AI_ICON = <glyph>                   (default: 🤖 robot)
 # Requires a Nerd Font (e.g. MesloLGS NF). Efficient: stdin read once; jq once per field.
 
 [ -z "$LC_ALL" ] && export LC_ALL=en_US.UTF-8
@@ -53,6 +54,7 @@ case "$(uname -s)" in
   *)      OS_ICON=$(printf '\xef\x85\xba') ;;   # F17A windows
 esac
 OS_ICON=${STATUSLINE_OS_ICON:-$OS_ICON}
+AI_ICON=${STATUSLINE_AI_ICON:-🤖}             # AI badge glyph (override per session)
 
 # ── theme palette ─────────────────────────────────────────────────────────────
 case "${STATUSLINE_THEME:-danny}" in
@@ -226,7 +228,7 @@ build_left() {
     2)   mtxt="$model_noeff" ;;
     *)   mtxt="$model_short" ;;
   esac
-  local badge="${OS_ICON} 🤖"
+  local badge="${OS_ICON} ${AI_ICON}"
   [ -n "$rc_in_badge" ] && badge="${badge} ${flame_fg}${RC_ICON}${e}[38;5;${BADGE_FG}m"
   ll=("${BADGE_BG}|${BADGE_FG}|${badge}" "${MODEL_BG}|${MODEL_FG}|${mtxt}")
   if [ -n "$has_ctx" ]; then

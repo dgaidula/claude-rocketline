@@ -100,6 +100,7 @@ Set via environment variables in the `command` (they compose):
 | `STATUSLINE_THEME` | `danny` · `dark-dan` | `danny` | Light signature theme vs. true-dark variant |
 | `STATUSLINE_CAPS` | `flame` · `slant` · `rounded` · `pointed` | `flame` | End-cap style |
 | `STATUSLINE_OS_ICON` | any glyph | auto | Override the OS badge icon |
+| `STATUSLINE_AI_ICON` | any glyph/emoji | `🤖` | Override the AI badge glyph (e.g. set per-launcher to flag which model/persona is running) |
 | `STATUSLINE_CTX_ICON` | any glyph/emoji | `🧠` | Context-meter icon |
 | `STATUSLINE_PIPE` | 256-color code | `250`/`240` | The `|` separator color |
 | `STATUSLINE_FLAME` | hex `F2920D` / 256-num | auto | Flame accent — auto true-color on truecolor terminals (`COLORTERM`), else 256-color `208` |
